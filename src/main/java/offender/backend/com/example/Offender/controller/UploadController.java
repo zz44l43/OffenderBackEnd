@@ -15,10 +15,6 @@ import java.io.InputStream;
 
 @RestController
 public class UploadController {
-    @GetMapping(value="/")
-    public String index() {
-        return "index";
-    }
     @GetMapping(value="/upload")
     public byte[] dataSource(HttpServletResponse response) throws IOException {
         getClass().getResource("entities.xml");
