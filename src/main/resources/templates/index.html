@@ -1,9 +1,119 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Title</title>
-</head>
+<html lang="en" xmlns:v-on="http://www.w3.org/1999/xhtml">
+<head th:replace="fragments/header :: header('Login')" />
 <body>
-<h1>Titles</h1>
+<div id="root">
+    <div th:replace="fragments/nav :: nav"></div>
+    <div class="container">
+        <div class="row">
+                <div class="six columns">
+                    <h4>This is left</h4>
+                </div>
+                <div class="six columns">
+                    <form enctype="multipart/form-data"  v-if="isInitial || isSaving">
+                        <h1>Upload data source</h1>
+                        <div class="dropbox">
+                            <input type="file"  multiple="multiple" class="input-file"  :name="uploadFieldName" :disabled="isSaving" v-on:change="filesChange($event.target.name, $event.target.files); fileCount = $event.target.files.length"  />
+                            <p v-if="isInitial">
+                                Drag your file(s) here to begin<br /> or click to browse
+                            </p>
+                            <p v-if="isSaving">
+                                Uploading {{ fileCount }} files...
+                            </p>
+                        </div>
+                    </form>
+                    <!--SUCCESS-->
+                    <div v-if="isSuccess">
+                        <h2>Uploaded {{ uploadedFiles.length }} file(s) successfully.</h2>
+                        <p>
+                            <a href="javascript:void(0)" v-on:click="reset()">Upload again</a>
+                        </p>
+                        <ul class="list-unstyled">
+                            <li v-for="item in uploadedFiles">
+                                <h3>{{ item.data}}</h3>
+                            </li>
+                        </ul>
+                    </div>
+                    <!--FAILED-->
+                    <div v-if="isFailed">
+                        <h2>Uploaded failed.</h2>
+                        <p>
+                            <a href="javascript:void(0)" v-on:click="reset()">Try again</a>
+                        </p>
+                        <pre>{{ uploadError }}</pre>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
+<div th:replace="fragments/footer :: foot"></div>
+<script>
+    var app = new Vue({
+        el: '#root',
+        mounted() {
+            this.reset();
+        },
+        data:{
+            STATUS_INITIAL: 0,
+            STATUS_SAVING : 1,
+            STATUS_SUCCESS : 2,
+            STATUS_FAILED : 3,
+            uploadedFiles: [],
+            uploadError: null,
+            currentStatus: null,
+            uploadFieldName: 'file'
+        },
+        computed: {
+            isInitial() {
+                return this.currentStatus === this.STATUS_INITIAL;
+                },
+            isSaving() {
+                return this.currentStatus === this.STATUS_SAVING;
+            },
+            isSuccess() {
+                return this.currentStatus === this.STATUS_SUCCESS;
+            },
+            isFailed() {
+                return this.currentStatus === this.STATUS_FAILED;
+            }
+    },
+        methods: {
+            reset() {
+                this.currentStatus = this.STATUS_INITIAL;
+                this.uploadedFiles = [];
+                this.uploadError = null;
+            },
+             save(formData) {
+                this.currentStatus = this.STATUS_SAVING;
+                this.upload(formData)
+
+            },
+            upload(formData){
+                axios({
+                        method:'post',
+                        url:'api/upload?access_token=' + getCookie("access_token"),
+                        auth:{username:'my-trusted-client',password:'secret'},
+                        headers: {"Content-type": "multipart/form-data"},
+                        data:formData
+                    }) .then(x => {
+                        this.uploadedFiles = [].concat(x);
+                        this.currentStatus = this.STATUS_SUCCESS;
+                    })
+                    .catch(err => {
+                        this.uploadError = err.response;
+                        this.currentStatus = this.STATUS_FAILED;
+                    });
+            },
+           filesChange(fieldName, fileList) {
+            const formData = new FormData();
+            if (!fileList.length) return;
+            Array.from(Array(fileList.length).keys()).map(x => {
+                formData.append(fieldName, fileList[x], fileList[x].name);
+            });
+            this.save(formData);
+            }
+        }
+    });
+</script>
 </html>
