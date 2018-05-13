@@ -1,10 +1,26 @@
 <div th:fragment="nav" class="container">
     <div class="row">
-        <div class="twelve columns">
-            <login-component></login-component>
-            <ul class="navMenu">
-                <li><a href="/">Home</a></li>
-            </ul>
-        </div>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light" style="width: 100%">
+            <a class="navbar-brand" href="/">Tiger App</a>
+            <!--<div class="twelve columns">-->
+                <!--<login-component></login-component>-->
+            <div class="collapse navbar-collapse" id="navbarText">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                    </li>
+                    <!--<li class="nav-item">-->
+                        <!--<a class="nav-link" href="#">Features</a>-->
+                    <!--</li>-->
+                    <!--<li class="nav-item">-->
+                        <!--<a class="nav-link" href="#">Pricing</a>-->
+                    <!--</li>-->
+                </ul>
+                <span class="navbar-text"><login-component></login-component></span>
+            </div>                <!--<ul class="navMenu">-->
+                    <!--<li><a href="/">Home</a></li>-->
+                <!--</ul>-->
+            <!--</div>-->
+        </nav>
     </div>
 </div>
