@@ -6,33 +6,36 @@
     <div th:replace="fragments/nav :: nav"></div>
     <div class="container">
         <div class="row">
-                <div class="six columns">
-                    <table class="u-full-width">
+                <div class="col-sm-6">
+                    <h1>
+                        Previous data source
+                    </h1>
+                    <table class="table table-hover">
+
+                        <!--Table head-->
                         <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Age</th>
-                            <th>Sex</th>
-                            <th>Location</th>
+                            <th>#</th>
+                            <th>File Name</th>
+                            <th>Date created</th>
+                            <th>File Size (Bytes)</th>
                         </tr>
                         </thead>
+                        <!--Table head-->
+
+                        <!--Table body-->
                         <tbody>
-                        <tr>
-                            <td>Dave Gamache</td>
-                            <td>26</td>
-                            <td>Male</td>
-                            <td>San Francisco</td>
-                        </tr>
-                        <tr>
-                            <td>Dwayne Johnson</td>
-                            <td>42</td>
-                            <td>Male</td>
-                            <td>Hayward</td>
+                        <tr v-for="(item, index) in uploadedFiles">
+                            <th scope="row">{{++index}}</th>
+                            <td>{{item.fileName}}</td>
+                            <td>{{new Date(item.dateCreated).toString()}}</td>
+                            <td>{{item.fileSize}} Bytes</td>
                         </tr>
                         </tbody>
+                        <!--Table body-->
                     </table>
                 </div>
-                <div class="six columns">
+                <div class="col-sm-6">
                     <form enctype="multipart/form-data"  v-if="isInitial || isSaving">
                         <h1>Upload data source</h1>
                         <div class="dropbox">
@@ -76,6 +79,7 @@
         el: '#root',
         mounted() {
             this.reset();
+            this.fetchExistingUpload();
         },
         data:{
             STATUS_INITIAL: 0,
@@ -111,6 +115,12 @@
                 this.currentStatus = this.STATUS_SAVING;
                 this.upload(formData)
 
+            },
+            fetchExistingUpload(){
+                axios.get("/api/fetchUpload/" + getCookie("username")).then(function(response){
+                    this.uploadedFiles = [];
+                    this.uploadedFiles = response.data;
+                }.bind(this));
             },
             upload(formData){
                 axios({

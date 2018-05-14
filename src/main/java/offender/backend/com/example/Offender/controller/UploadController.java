@@ -2,7 +2,12 @@ package offender.backend.com.example.Offender.controller;
 
 //import org.apache.commons.io.IOUtils;
 import offender.backend.com.example.Offender.config.CustomUserDetails;
+import offender.backend.com.example.Offender.entities.UploadDataRecord;
+import offender.backend.com.example.Offender.repository.UploadDataRepository;
+import offender.backend.com.example.Offender.service.UploadService;
+import offender.backend.com.example.Offender.service.UserService;
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -20,10 +25,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 @RestController
 public class UploadController {
+    @Autowired
+    private UploadService uploadService;
+
+    @Autowired
+    private UserService userService;
+
     private static String UPLOADED_FOLDER = "C://temp//";
     @GetMapping(value="/upload")
     public byte[] dataSource(HttpServletResponse response) throws IOException {
@@ -32,6 +44,11 @@ public class UploadController {
         Resource resource = new ClassPathResource("static/entities.xml");
         InputStream in = resource.getInputStream();
         return IOUtils.toByteArray(in);
+    }
+
+    @GetMapping(value="api/fetchUpload/{username}")
+    public List<UploadDataRecord> uploadDataRecord(@PathVariable String username) throws IOException {
+        return uploadService.findByUser(userService.getUser(username));
     }
 
     @PostMapping("/api/upload")
@@ -72,8 +89,14 @@ public class UploadController {
 
             byte[] bytes = file.getBytes();
             Path path = Paths.get(fullFolderPath + file.getOriginalFilename());
-
             Files.write(path, bytes);
+
+            UploadDataRecord newRecord = new UploadDataRecord();
+            newRecord.setCreator(userService.getUser(userDetails.getUsername()));
+            newRecord.setDateCreated(new Date());
+            newRecord.setFileSize(file.getSize());
+            newRecord.setFileName(file.getOriginalFilename());
+            uploadService.insert(newRecord);
 
         }
 
