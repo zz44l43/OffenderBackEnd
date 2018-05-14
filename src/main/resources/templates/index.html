@@ -25,12 +25,24 @@
 
                         <!--Table body-->
                         <tbody>
-                        <tr v-for="(item, index) in uploadedFiles">
-                            <th scope="row">{{++index}}</th>
-                            <td>{{item.fileName}}</td>
-                            <td>{{new Date(item.dateCreated).toString()}}</td>
-                            <td>{{item.fileSize}} Bytes</td>
-                        </tr>
+                        <template v-for="(item, index) in uploadedFiles">
+                            <template v-if="index === 0">
+                                <tr class="table-success" >
+                                    <th scope="row">{{index + 1}}</th>
+                                    <td>{{item.fileName}}</td>
+                                    <td>{{new Date(item.dateCreated).toString()}}</td>
+                                    <td>{{item.fileSize}} Bytes</td>
+                                </tr>
+                            </template>
+                            <template v-else="index !== 0">
+                                <tr>
+                                    <th scope="row">{{index + 1}}</th>
+                                    <td>{{item.fileName}}</td>
+                                    <td>{{new Date(item.dateCreated).toString()}}</td>
+                                    <td>{{item.fileSize}} Bytes</td>
+                                </tr>
+                            </template>
+                        </template>
                         </tbody>
                         <!--Table body-->
                     </table>
@@ -50,15 +62,20 @@
                     </form>
                     <!--SUCCESS-->
                     <div v-if="isSuccess">
-                        <h2>Uploaded {{ uploadedFiles.length }} file(s) successfully.</h2>
-                        <p>
-                            <a href="javascript:void(0)" v-on:click="reset()">Upload again</a>
-                        </p>
+                        <h1>Uploaded result</h1>
+                        <div class="alert alert-success">
+                            <strong>Success!</strong> Uploaded {{ justUploadedFiles.length }} file(s).
+                        </div>
                         <ul class="list-unstyled">
-                            <li v-for="item in uploadedFiles">
-                                <h3>{{ item.data}}</h3>
+                            <li v-for="item in justUploadedFiles">
+                                <div class="alert alert-success">
+                                    <strong>Success!</strong> {{ item.data}}
+                                </div>
                             </li>
                         </ul>
+                        <p>
+                            <a class="btn btn-primary btn-lg active" role="button" aria-pressed="true" href="javascript:void(0)" v-on:click="reset()">Upload again</a>
+                        </p>
                     </div>
                     <!--FAILED-->
                     <div v-if="isFailed">
@@ -89,7 +106,8 @@
             uploadedFiles: [],
             uploadError: null,
             currentStatus: null,
-            uploadFieldName: 'file'
+            uploadFieldName: 'file',
+            justUploadedFiles: []
         },
         computed: {
             isInitial() {
@@ -108,18 +126,18 @@
         methods: {
             reset() {
                 this.currentStatus = this.STATUS_INITIAL;
-                this.uploadedFiles = [];
                 this.uploadError = null;
+                this.justUploadedFiles = [];
             },
              save(formData) {
                 this.currentStatus = this.STATUS_SAVING;
-                this.upload(formData)
-
+                this.upload(formData);
             },
             fetchExistingUpload(){
                 axios.get("/api/fetchUpload/" + getCookie("username")).then(function(response){
                     this.uploadedFiles = [];
                     this.uploadedFiles = response.data;
+                    this.uploadedFiles = _.sortBy(this.uploadedFiles,function(file){ return -file.dateCreated; })
                 }.bind(this));
             },
             upload(formData){
@@ -130,8 +148,9 @@
                         headers: {"Content-type": "multipart/form-data"},
                         data:formData
                     }) .then(x => {
-                        this.uploadedFiles = [].concat(x);
                         this.currentStatus = this.STATUS_SUCCESS;
+                        this.justUploadedFiles = [].concat(x);
+                        this.fetchExistingUpload();
                     })
                     .catch(err => {
                         this.uploadError = err.response;

@@ -6,18 +6,24 @@
     <div th:replace="fragments/nav :: nav"></div>
     <div class="container">
         <div class="row">
-            <div class="twelve columns">
-                <h4 id="loginHeader">Login</h4>
-                <div class="six columns align-center">
-                    <label for="username">Username</label>
-                    <input v-model="username" class="u-full-width" type="text" placeholder="yourUsername" id="username"/>
-                    <label for="password">Password</label>
-                    <input v-model="password" class="u-full-width" type="password" id="password"/>
-                    <label for="passwordConfirm">Confirm password</label>
-                    <input v-model="passwordConfirm" class="u-full-width" type="password" id="passwordConfirm"/>
-                    <input class="u-full-width button-primary" type="submit" v-on:click="register" value="Submit" />
-                </div>
+            <div class="col-sm-6 offset-sm-2">
+                <h4 id="registerHeader">Registration</h4>
             </div>
+        </div>
+        <div class="col-sm-6 offset-sm-2">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input v-model="username" class="form-control" type="text" placeholder="Enter your preferred user name" id="username"/>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input v-model="password" class="form-control" type="password" id="password"/>
+            </div>
+            <div class="form-group">
+                <label for="passwordConfirm">Confirm password</label>
+                <input v-model="passwordConfirm" class="form-control" type="password" id="passwordConfirm"/>
+            </div>
+            <button class="btn btn-primary" type="submit" v-on:click="register">Register </button>
         </div>
     </div>
 </div>
