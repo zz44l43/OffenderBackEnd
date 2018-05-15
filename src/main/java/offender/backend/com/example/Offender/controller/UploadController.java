@@ -63,9 +63,12 @@ public class UploadController {
 
     @GetMapping(value = "/images")
     public void imageSource(HttpServletResponse response) throws ServletException, IOException {
-        //CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String fullFolderPath = UPLOADED_FOLDER  + "admin/";
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String fullFolderPath = UPLOADED_FOLDER  + userDetails.getUsername() + "/images/";
         File directory = new File(fullFolderPath);
+        if(!directory.exists())
+            throw new IOException();
+
         response.setContentType("multipart/x-mixed-replace;boundary=END");
 
         File[] files = directory.listFiles();
