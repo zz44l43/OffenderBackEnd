@@ -24,6 +24,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -110,6 +111,26 @@ public class UploadController {
         out.flush();
         out.close();
 
+    }
+
+    @GetMapping(value = "/api/fetchImages/{username}")
+    public List<UploadDataRecord> fetchImagesRecoreds(@PathVariable String username) throws IOException {
+        String fullFolderPath = UPLOADED_FOLDER  + username + "/images/";
+        File directory = new File(fullFolderPath);
+        List<UploadDataRecord> records = new ArrayList<>();
+        if(!directory.exists())
+            return records;
+        File[] files = directory.listFiles();
+        for (File file: files) {
+            UploadDataRecord newRecord = new UploadDataRecord();
+            newRecord.setCreator(userService.getUser(username));
+            newRecord.setFileName(file.getName());
+            newRecord.setFileType(FileType.IMAGE);
+            newRecord.setFileSize(file.length());
+            newRecord.setFileDisplayUrl("images/" + username + "/images/" + file.getName());
+            records.add(newRecord);
+        }
+        return records;
     }
 
     @GetMapping(value = "api/fetchUpload/{username}")

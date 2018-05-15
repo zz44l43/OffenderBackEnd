@@ -17,10 +17,10 @@ public class UploadDataRecord {
     private Date dateCreated;
     private Long fileSize;
     private FileType fileType;
+    private String fileDisplayUrl;
 
     @JsonIgnore
     private String filePath;
-
 
     @ManyToOne
     private User creator;
@@ -74,6 +74,14 @@ public class UploadDataRecord {
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+
+    public String getFileDisplayUrl() {
+        return fileDisplayUrl;
+    }
+
+    public void setFileDisplayUrl(String fileDisplayUrl) {
+        this.fileDisplayUrl = fileDisplayUrl;
     }
 
     public FileType getFileType(){
