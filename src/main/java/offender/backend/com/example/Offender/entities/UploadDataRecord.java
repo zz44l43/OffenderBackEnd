@@ -1,5 +1,8 @@
 package offender.backend.com.example.Offender.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import offender.backend.com.example.Offender.FileType;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -13,6 +16,11 @@ public class UploadDataRecord {
     private String fileName;
     private Date dateCreated;
     private Long fileSize;
+    private FileType fileType;
+
+    @JsonIgnore
+    private String filePath;
+
 
     @ManyToOne
     private User creator;
@@ -59,5 +67,19 @@ public class UploadDataRecord {
     public void setCreator(User creator) {
         this.creator = creator;
     }
+
+    public String getFilePath() {
+        return fileName;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
+    public FileType getFileType(){
+        return fileType;
+    }
+
+    public void setFileType(FileType fileType){this.fileType = fileType;}
 
 }

@@ -1,6 +1,7 @@
 package offender.backend.com.example.Offender.controller;
 
 //import org.apache.commons.io.IOUtils;
+import offender.backend.com.example.Offender.FileType;
 import offender.backend.com.example.Offender.config.CustomUserDetails;
 import offender.backend.com.example.Offender.entities.UploadDataRecord;
 import offender.backend.com.example.Offender.repository.UploadDataRepository;
@@ -14,19 +15,23 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class UploadController {
@@ -36,17 +41,75 @@ public class UploadController {
     @Autowired
     private UserService userService;
 
-    private static String UPLOADED_FOLDER = "C://temp//";
-    @GetMapping(value="/upload")
+    private static String UPLOADED_FOLDER = "C://Temp//";
+
+    @GetMapping(value = "/upload")
     public byte[] dataSource(HttpServletResponse response) throws IOException {
         getClass().getResource("entities.xml");
         response.setContentType("application/xml");
         Resource resource = new ClassPathResource("static/entities.xml");
         InputStream in = resource.getInputStream();
         return IOUtils.toByteArray(in);
+
     }
 
-    @GetMapping(value="api/fetchUpload/{username}")
+    @GetMapping(value = "/image/{imageName:.+}")
+    public byte[] getImage(HttpServletResponse response, @PathVariable(value = "imageName") String imageName) throws IOException {
+        String fullFolderPath = UPLOADED_FOLDER  + "admin/images/";
+        File file = new File(fullFolderPath + imageName);
+        return Files.readAllBytes(file.toPath());
+
+    }
+
+    @GetMapping(value = "/images")
+    public void imageSource(HttpServletResponse response) throws ServletException, IOException {
+        //CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String fullFolderPath = UPLOADED_FOLDER  + "admin/";
+        File directory = new File(fullFolderPath);
+        response.setContentType("multipart/x-mixed-replace;boundary=END");
+
+        File[] files = directory.listFiles();
+        ServletOutputStream out = response.getOutputStream();
+        for (File file : files) {
+
+            // Get the file
+            FileInputStream fis = null;
+            try {
+                fis = new FileInputStream(file);
+
+            } catch (FileNotFoundException fnfe) {
+                // If the file does not exists, continue with the next file
+                System.out.println("Couldfind file " + file.getAbsolutePath());
+                continue;
+            }
+
+            BufferedInputStream fif = new BufferedInputStream(fis);
+
+            // Print the content type
+            out.println("Content-Disposition: attachment; filename=" + file.getName());
+            out.println();
+
+            System.out.println("Sending " + file.getName());
+
+            // Write the contents of the file
+            int data = 0;
+            while ((data = fif.read()) != -1) {
+                out.write(data);
+            }
+            fif.close();
+
+            // Print the boundary string
+            out.println();
+            out.println("--END");
+            out.flush();
+            System.out.println("Finisheding file " + file.getName());
+        }
+        out.flush();
+        out.close();
+
+    }
+
+    @GetMapping(value = "api/fetchUpload/{username}")
     public List<UploadDataRecord> uploadDataRecord(@PathVariable String username) throws IOException {
         return uploadService.findByUser(userService.getUser(username));
     }
@@ -63,7 +126,7 @@ public class UploadController {
 
         try {
 
-            saveUploadedFiles(Arrays.asList(uploadfile));
+            saveUploadedFiles(Arrays.asList(uploadfile), false);
 
         } catch (IOException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -73,11 +136,43 @@ public class UploadController {
                 uploadfile.getOriginalFilename(), new HttpHeaders(), HttpStatus.OK);
 
     }
-    private void saveUploadedFiles(List<MultipartFile> files) throws IOException {
-        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String fullFolderPath = UPLOADED_FOLDER + userDetails.getUsername() + "/";
 
-        if(!Files.exists(Paths.get(fullFolderPath))){
+    // 3.1.2 Multiple file upload
+    @PostMapping("/api/upload/multi")
+    public ResponseEntity<?> uploadFileMulti(
+            @RequestParam("files") MultipartFile[] uploadfiles) {
+
+        // Get file name
+        String uploadedFileName = Arrays.stream(uploadfiles).map(x -> x.getOriginalFilename())
+                .filter(x -> !StringUtils.isEmpty(x)).collect(Collectors.joining(" , "));
+
+        if (StringUtils.isEmpty(uploadedFileName)) {
+            return new ResponseEntity("please select a file!", HttpStatus.OK);
+        }
+
+        try {
+
+            saveUploadedFiles(Arrays.asList(uploadfiles), true);
+
+        } catch (IOException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        return new ResponseEntity("Successfully uploaded - "
+                + uploadedFileName, HttpStatus.OK);
+
+    }
+
+    private void saveUploadedFiles(List<MultipartFile> files, Boolean isImage) throws IOException {
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String fullFolderPath;
+        if (!isImage) {
+            fullFolderPath = UPLOADED_FOLDER + userDetails.getUsername() + "/";
+        } else {
+            fullFolderPath = UPLOADED_FOLDER + userDetails.getUsername() + "/images/";
+        }
+
+        if (!Files.exists(Paths.get(fullFolderPath))) {
             Files.createDirectories(Paths.get(fullFolderPath));
         }
 
@@ -96,6 +191,12 @@ public class UploadController {
             newRecord.setDateCreated(new Date());
             newRecord.setFileSize(file.getSize());
             newRecord.setFileName(file.getOriginalFilename());
+            if (isImage) {
+                newRecord.setFileType(FileType.IMAGE);
+            } else {
+                newRecord.setFileType(FileType.XML);
+            }
+
             uploadService.insert(newRecord);
 
         }

@@ -11,6 +11,11 @@ public class HomeController {
         return "index";
     }
 
+    @GetMapping(value="/image")
+    public String image(){
+        return "image";
+    }
+
     @GetMapping(value="/registration")
     public String register(){
         return "register";
