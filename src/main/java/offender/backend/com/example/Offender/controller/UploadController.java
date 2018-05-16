@@ -33,6 +33,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @RestController
 public class UploadController {
@@ -42,7 +44,7 @@ public class UploadController {
     @Autowired
     private UserService userService;
 
-    private static String UPLOADED_FOLDER = "C://Temp//";
+    private static String UPLOADED_FOLDER = "/Users/es/Desktop/images/";
 
     @GetMapping(value = "/upload")
     public byte[] dataSource(HttpServletResponse response) throws IOException {
@@ -66,50 +68,32 @@ public class UploadController {
     public void imageSource(HttpServletResponse response, @PathVariable String username) throws ServletException, IOException {
 //        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String fullFolderPath = UPLOADED_FOLDER  + username + "/images/";
+        System.out.println(fullFolderPath);
         File directory = new File(fullFolderPath);
         if(!directory.exists())
             throw new IOException();
 
-        response.setContentType("multipart/x-mixed-replace;boundary=END");
+        response.setContentType("application/zip");
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.addHeader("Content-Disposition", "attachment; filename=\"test.zip\"");
+        ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
+
+
+
 
         File[] files = directory.listFiles();
         ServletOutputStream out = response.getOutputStream();
         for (File file : files) {
 
-            // Get the file
-            FileInputStream fis = null;
-            try {
-                fis = new FileInputStream(file);
+            zipOutputStream.putNextEntry(new ZipEntry(file.getName()));
+            FileInputStream fileInputStream = new FileInputStream(file);
 
-            } catch (FileNotFoundException fnfe) {
-                // If the file does not exists, continue with the next file
-                System.out.println("Couldfind file " + file.getAbsolutePath());
-                continue;
-            }
+            IOUtils.copy(fileInputStream, zipOutputStream);
 
-            BufferedInputStream fif = new BufferedInputStream(fis);
-
-            // Print the content type
-            out.println("Content-Disposition: attachment; filename=" + file.getName());
-            out.println();
-
-            System.out.println("Sending " + file.getName());
-
-            // Write the contents of the file
-            int data = 0;
-            while ((data = fif.read()) != -1) {
-                out.write(data);
-            }
-            fif.close();
-
-            // Print the boundary string
-            out.println();
-            out.println("--END");
-            out.flush();
-            System.out.println("Finisheding file " + file.getName());
+            fileInputStream.close();
+            zipOutputStream.closeEntry();
         }
-        out.flush();
-        out.close();
+        zipOutputStream.close();
 
     }
 
