@@ -7,6 +7,7 @@ import offender.backend.com.example.Offender.entities.UploadDataRecord;
 import offender.backend.com.example.Offender.repository.UploadDataRepository;
 import offender.backend.com.example.Offender.service.UploadService;
 import offender.backend.com.example.Offender.service.UserService;
+import offender.backend.com.example.Offender.service.UtilsService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -42,7 +43,9 @@ public class UploadController {
     @Autowired
     private UserService userService;
 
-    private static String UPLOADED_FOLDER = "C://Temp//";
+    @Autowired
+    private UtilsService utilsService;
+
 
     @GetMapping(value = "/upload")
     public byte[] dataSource(HttpServletResponse response) throws IOException {
@@ -56,7 +59,7 @@ public class UploadController {
 
     @GetMapping(value = "/image/{imageName:.+}")
     public byte[] getImage(HttpServletResponse response, @PathVariable(value = "imageName") String imageName) throws IOException {
-        String fullFolderPath = UPLOADED_FOLDER  + "admin/images/";
+        String fullFolderPath = utilsService.getBaseFolderPath()  + "admin/images/";
         File file = new File(fullFolderPath + imageName);
         return Files.readAllBytes(file.toPath());
 
@@ -65,7 +68,7 @@ public class UploadController {
     @GetMapping(value = "/images/{username}")
     public void imageSource(HttpServletResponse response, @PathVariable String username) throws ServletException, IOException {
 //        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String fullFolderPath = UPLOADED_FOLDER  + username + "/images/";
+        String fullFolderPath = utilsService.getBaseFolderPath()  + username + "/images/";
         File directory = new File(fullFolderPath);
         if(!directory.exists())
             throw new IOException();
@@ -115,7 +118,7 @@ public class UploadController {
 
     @GetMapping(value = "/api/fetchImages/{username}")
     public List<UploadDataRecord> fetchImagesRecoreds(@PathVariable String username) throws IOException {
-        String fullFolderPath = UPLOADED_FOLDER  + username + "/images/";
+        String fullFolderPath = utilsService.getBaseFolderPath()  + username + "/images/";
         File directory = new File(fullFolderPath);
         List<UploadDataRecord> records = new ArrayList<>();
         if(!directory.exists())
@@ -191,9 +194,9 @@ public class UploadController {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String fullFolderPath;
         if (!isImage) {
-            fullFolderPath = UPLOADED_FOLDER + userDetails.getUsername() + "/";
+            fullFolderPath = utilsService.getBaseFolderPath() + userDetails.getUsername() + "/";
         } else {
-            fullFolderPath = UPLOADED_FOLDER + userDetails.getUsername() + "/images/";
+            fullFolderPath = utilsService.getBaseFolderPath() + userDetails.getUsername() + "/images/";
         }
 
         if (!Files.exists(Paths.get(fullFolderPath))) {
