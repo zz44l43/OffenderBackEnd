@@ -109,7 +109,7 @@ public class UploadController {
             UploadDataRecord newRecord = new UploadDataRecord();
             newRecord.setCreator(userService.getUser(username));
             newRecord.setFileName(file.getName());
-            newRecord.setFileType(FileType.IMAGE);
+            newRecord.setFileType(FileType.IMAGE); 
             newRecord.setFileSize(file.length());
             newRecord.setFileDisplayUrl("images/" + username + "/images/" + file.getName());
             records.add(newRecord);
