@@ -95,6 +95,7 @@
     var app = new Vue({
         el: '#root',
         mounted() {
+            this.isLoggedIn();
             this.reset();
             this.fetchExistingUpload();
         },
@@ -124,6 +125,20 @@
             }
     },
         methods: {
+            isLoggedIn(){
+                if(getCookie("access_token")){
+                    axios.get("/getUsername?access_token=" + getCookie("access_token"))
+                        .then(function(response){
+                            return true;
+                        })
+                        .catch(function(error){
+                            document.location.replace("/login");
+                        });
+                 }
+                 else{
+                         document.location.replace("/login");
+                    }
+            },
             reset() {
                 this.currentStatus = this.STATUS_INITIAL;
                 this.uploadError = null;

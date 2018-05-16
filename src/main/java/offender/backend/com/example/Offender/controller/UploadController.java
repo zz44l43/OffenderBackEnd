@@ -150,7 +150,7 @@ public class UploadController {
 
         try {
 
-            saveUploadedFiles(Arrays.asList(uploadfile), false);
+            saveUploadedFiles(Arrays.asList(uploadfile), false, true);
 
         } catch (IOException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -176,7 +176,7 @@ public class UploadController {
 
         try {
 
-            saveUploadedFiles(Arrays.asList(uploadfiles), true);
+            saveUploadedFiles(Arrays.asList(uploadfiles), true, false);
 
         } catch (IOException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -187,7 +187,7 @@ public class UploadController {
 
     }
 
-    private void saveUploadedFiles(List<MultipartFile> files, Boolean isImage) throws IOException {
+    private void saveUploadedFiles(List<MultipartFile> files, Boolean isImage, Boolean keepRecords) throws IOException {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String fullFolderPath;
         if (!isImage) {
@@ -209,7 +209,10 @@ public class UploadController {
             byte[] bytes = file.getBytes();
             Path path = Paths.get(fullFolderPath + file.getOriginalFilename());
             Files.write(path, bytes);
-
+            if(!keepRecords)
+            {
+                continue;
+            }
             UploadDataRecord newRecord = new UploadDataRecord();
             newRecord.setCreator(userService.getUser(userDetails.getUsername()));
             newRecord.setDateCreated(new Date());

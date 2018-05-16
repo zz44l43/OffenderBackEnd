@@ -84,7 +84,7 @@
                 <div v-if="isSuccess">
                     <h1>Uploaded result</h1>
                     <div class="alert alert-success">
-                        <strong>Success!</strong> Uploaded {{ justUploadedFiles.length }} file(s).
+                        <strong>Success!</strong> Uploaded {{ numberOfFiles }} file(s).
                     </div>
                     <ul class="list-unstyled">
                         <li v-for="item in justUploadedFiles">
@@ -119,6 +119,7 @@
     var app = new Vue({
         el: '#root',
         mounted() {
+            this.isLoggedIn();
             this.reset();
             this.fetchImagesRecords();
         },
@@ -133,7 +134,8 @@
             uploadFieldName: 'files',
             justUploadedFiles: [],
             showModal: false,
-            src: ''
+            src: '',
+            numberOfFiles: 0
         },
         computed: {
             isInitial() {
@@ -150,6 +152,20 @@
             }
     },
         methods: {
+            isLoggedIn(){
+                if(getCookie("access_token")){
+                    axios.get("/getUsername?access_token=" + getCookie("access_token"))
+                        .then(function(response){
+                            return true;
+                        })
+                        .catch(function(error){
+                            document.location.replace("/login");
+                        });
+                 }
+                 else{
+                         document.location.replace("/login");
+                    }
+            },
             itemClicked(item) {
                 this.src = item.fileDisplayUrl;
                 this.showModel = true;
@@ -192,6 +208,7 @@
             Array.from(Array(fileList.length).keys()).map(x => {
                 formData.append(fieldName, fileList[x], fileList[x].name);
             });
+            this.numberOfFiles = fileList.length;
             this.save(formData);
             }
         }
