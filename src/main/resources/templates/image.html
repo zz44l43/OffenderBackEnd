@@ -46,8 +46,8 @@
                     <tr>
                         <th>#</th>
                         <th>File Name</th>
-                        <th>Date created</th>
                         <th>File Size (Bytes)</th>
+                        <th>Image</th>
                     </tr>
                     </thead>
                     <!--Table head-->
@@ -68,7 +68,7 @@
             </div>
             <div class="col-sm-6">
                 <form enctype="multipart/form-data"  v-if="isInitial || isSaving">
-                    <h1>Upload data source</h1>
+                    <h1>Upload images</h1>
                     <div class="dropbox">
                         <input type="file"  multiple="multiple" class="input-file"  :name="uploadFieldName" :disabled="isSaving" v-on:change="filesChange($event.target.name, $event.target.files); fileCount = $event.target.files.length"  />
                         <p v-if="isInitial">
