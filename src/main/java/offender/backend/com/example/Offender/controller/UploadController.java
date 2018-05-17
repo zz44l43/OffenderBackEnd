@@ -73,6 +73,7 @@ public class UploadController {
 //        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         String fullFolderPath = utilsService.getBaseFolderPath()  + username + "/images/";
+        System.out.println(fullFolderPath);
         File directory = new File(fullFolderPath);
         if(!directory.exists())
             throw new IOException();

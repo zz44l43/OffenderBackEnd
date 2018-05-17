@@ -7,7 +7,9 @@ public class UtilsService {
     public String getBaseFolderPath(){
         if(System.getProperty("os.name").startsWith("Windows")){
             return "C:\\Temp\\";
+        }else {
+            return "/Users/es/Desktop/images/";
         }
-        return "/";
+//        return "/";
     }
 }
