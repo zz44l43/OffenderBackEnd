@@ -8,8 +8,15 @@ public class UtilsService {
         if(System.getProperty("os.name").startsWith("Windows")){
             return "C:\\Temp\\";
         }else {
-            return "/Users/es/Desktop/images/";
+            return "/Users/es/Desktop/Users/";
         }
-//        return "/";
     }
+
+//    public  String getFilePath(){
+//        if(System.getProperty("os.name").startsWith("Windows")){
+//            return "C:\\Temp\\";
+//        }else {
+//            return "/Users/es/Desktop/Users/";
+//        }
+//    }
 }

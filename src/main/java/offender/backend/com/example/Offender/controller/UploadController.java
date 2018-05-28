@@ -52,11 +52,15 @@ public class UploadController {
 
     @GetMapping(value = "/upload")
     public byte[] dataSource(HttpServletResponse response) throws IOException {
-        getClass().getResource("entities.xml");
-        response.setContentType("application/xml");
-        Resource resource = new ClassPathResource("static/entities.xml");
-        InputStream in = resource.getInputStream();
-        return IOUtils.toByteArray(in);
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+        List<UploadDataRecord> records =  uploadService.findByUser(userService.getUser(username));
+        UploadDataRecord record =  records.get(records.size()- 1);
+        String fullFolderPath = utilsService.getBaseFolderPath()  + username + "/"+record.getFileName();
+        File file = new File(fullFolderPath);
+        FileInputStream fileInputStream = new FileInputStream(file);
+
+        return IOUtils.toByteArray(fileInputStream);
 
     }
 
