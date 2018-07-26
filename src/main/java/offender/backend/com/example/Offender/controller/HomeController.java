@@ -26,5 +26,8 @@ public class HomeController {
         return "login";
 
     }
-
+    @GetMapping(value="/design")
+    public String design(){
+        return "design";
+    }
 }

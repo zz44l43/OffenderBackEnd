@@ -3,8 +3,9 @@ package offender.backend.com.example.Offender.controller;
 //import org.apache.commons.io.IOUtils;
 import offender.backend.com.example.Offender.FileType;
 import offender.backend.com.example.Offender.config.CustomUserDetails;
-import offender.backend.com.example.Offender.entities.UploadDataRecord;
+import offender.backend.com.example.Offender.entities.*;
 import offender.backend.com.example.Offender.repository.UploadDataRepository;
+import offender.backend.com.example.Offender.service.DataSourceService;
 import offender.backend.com.example.Offender.service.UploadService;
 import offender.backend.com.example.Offender.service.UserService;
 import offender.backend.com.example.Offender.service.UtilsService;
@@ -48,6 +49,9 @@ public class UploadController {
 
     @Autowired
     private UtilsService utilsService;
+
+    @Autowired
+    private DataSourceService dataSourceService;
 
 
     @GetMapping(value = "/upload")
@@ -218,9 +222,31 @@ public class UploadController {
             }
 
             uploadService.insert(newRecord);
+            if(!isImage){
+                File newFile = new File(fullFolderPath + file.getOriginalFilename());
+                Data data = dataSourceService.getPeopleSource(newFile);
+                ArrayList<AttributesVM> attributesVMList =  dataSourceService.getUniqueKeyAttributesVM(data,userService.getUser(userDetails.getUsername()));
+                for (AttributesVM att: attributesVMList
+                     ) {
+                    uploadService.saveOrUpdateAttributes(att, userService.getUser(userDetails.getUsername()));
+                }
+
+            }
 
         }
 
     }
+
+    @GetMapping(value = "/api/attributes/{username}")
+    public List<Attributes> attributes(@PathVariable String username) throws IOException {
+        List<UploadDataRecord> records =  uploadService.findByUser(userService.getUser(username));
+        UploadDataRecord record =  records.get(records.size()- 1);
+        String fullFolderPath = utilsService.getBaseFolderPath()  + username + "/"+record.getFileName();
+        File file = new File(fullFolderPath);
+        Data data = dataSourceService.getPeopleSource(file);
+        ArrayList<Attributes> attributes = dataSourceService.getUniqueKeyAttributes(data);
+        return attributes;
+    }
+
 
 }
