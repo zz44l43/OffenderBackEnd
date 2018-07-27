@@ -23,4 +23,6 @@ public class AttributesVM {
     private String listKey;
     private boolean selected;
     public AttributesVM(){}
+    public boolean getSelected(){return selected;}
+    public void setSelected(boolean selected){this.selected = selected;}
 }

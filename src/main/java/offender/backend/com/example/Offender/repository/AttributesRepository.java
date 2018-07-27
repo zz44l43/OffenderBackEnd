@@ -9,11 +9,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
-import java.util.List;
+import java.util.ArrayList;
 
 @Repository
 public interface AttributesRepository extends JpaRepository<AttributesVM,Long> {
-    List<AttributesVM> findByCreatorId(Long id);
+    ArrayList<AttributesVM> findByCreatorId(Long id);
     AttributesVM findByAttributeKeyAndCreator(String attributeKey, User creator);
 
     @Modifying

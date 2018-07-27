@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -24,7 +25,7 @@ public class UploadService {
         return uploadDataRepository.findByCreatorId(user.getId());
     }
 
-    public List<AttributesVM> findAttributesByUser(User user){
+    public ArrayList<AttributesVM> findAttributesByUser(User user){
         return attributeDataRepository.findByCreatorId(user.getId());
     }
 
@@ -43,7 +44,7 @@ public class UploadService {
             attributeDataRepository.save(attributesVM);
         }
         else{
-            attributeDataRepository.setSelectedByAttributeKeyAndCreator(false, attributesVM.getAttributeKey(),user.getId());
+            attributeDataRepository.setSelectedByAttributeKeyAndCreator(attributesVM.getSelected(), attributesVM.getAttributeKey(),user.getId());
         }
     }
 

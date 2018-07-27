@@ -4,6 +4,7 @@ package offender.backend.com.example.Offender.controller;
 import offender.backend.com.example.Offender.FileType;
 import offender.backend.com.example.Offender.config.CustomUserDetails;
 import offender.backend.com.example.Offender.entities.*;
+import offender.backend.com.example.Offender.pojos.UserRegistration;
 import offender.backend.com.example.Offender.repository.UploadDataRepository;
 import offender.backend.com.example.Offender.service.DataSourceService;
 import offender.backend.com.example.Offender.service.UploadService;
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -62,8 +64,10 @@ public class UploadController {
         UploadDataRecord record =  records.get(records.size()- 1);
         String fullFolderPath = utilsService.getBaseFolderPath()  + username + "/"+record.getFileName();
         File file = new File(fullFolderPath);
-        FileInputStream fileInputStream = new FileInputStream(file);
-
+        ArrayList<AttributesVM> attributesVMList = uploadService.findAttributesByUser((userService.getUser(username)));
+        Data data = dataSourceService.getFilteredPeopleSource(file,attributesVMList);
+        File newFile = dataSourceService.createXML(data,utilsService.getBaseFolderPath()  + username + "/");
+        FileInputStream fileInputStream = new FileInputStream(newFile);
         return IOUtils.toByteArray(fileInputStream);
 
     }
@@ -238,14 +242,22 @@ public class UploadController {
     }
 
     @GetMapping(value = "/api/attributes/{username}")
-    public List<Attributes> attributes(@PathVariable String username) throws IOException {
-        List<UploadDataRecord> records =  uploadService.findByUser(userService.getUser(username));
-        UploadDataRecord record =  records.get(records.size()- 1);
-        String fullFolderPath = utilsService.getBaseFolderPath()  + username + "/"+record.getFileName();
-        File file = new File(fullFolderPath);
-        Data data = dataSourceService.getPeopleSource(file);
-        ArrayList<Attributes> attributes = dataSourceService.getUniqueKeyAttributes(data);
-        return attributes;
+    public List<AttributesVM> attributes(@PathVariable String username) throws IOException {
+        User user = userService.getUser(username);
+        return uploadService.findAttributesByUser(user);
+    }
+
+    @PostMapping(value = "/api/attributes")
+    public String saveDesign(@RequestBody List<AttributesVM> attributesVMList){
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userService.getUser(userDetails.getUsername());
+        if(user == null)
+            return "Error username does not exist";
+        for (AttributesVM attributeVM: attributesVMList
+             ) {
+            uploadService.saveOrUpdateAttributes(attributeVM,user);
+        }
+        return "Saved";
     }
 
 

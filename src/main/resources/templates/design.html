@@ -6,30 +6,69 @@
     <div th:replace="fragments/nav :: nav"></div>
     <div class="container">
         <div class="row">
-            <table class="table table-condensed">
-                <thead>
-                <tr>
-                    <th>Select</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Email</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td><div><input type="checkbox" id="checkbox1" class="styled"></input></div></td>
-                    <td>John</td>
-                    <td>Carter</td>
-                    <td>johncarter@mail.com</td>
-                </tr>
-                <tr>
-                    <td><div><input type="checkbox" id="checkbox2" class="styled"></input></div></td>
-                    <td>Peter</td>
-                    <td>Parker</td>
-                    <td>peterparker@mail.com</td>
-                </tr>
-                </tbody>
-            </table>
+            <div class="col-sm-6">
+                <h1>
+                    All Attributes
+                </h1>
+
+                <table class="table table-hover">
+
+                    <!--Table head-->
+                    <thead>
+                    <tr>
+                        <th v-on:click="onSelectSort()">Select</th>
+                        <th>Attribute Key</th>
+                        <th>Type</th>
+                    </tr>
+                    </thead>
+                    <!--Table head-->
+
+                    <!--Table body-->
+                    <tbody>
+                    <template v-for="(item, index) in attributes">
+                        <tr v-on:click="onSelect(item)">
+                            <td><input type="checkbox" id="checkbox1" class="styled" v-model="item.selected"></input></td>
+                            <td>{{item.attributeKey}}</td>
+                            <td>{{item.type}}</td>
+                        </tr>
+                    </template>
+                    </tbody>
+                    <!--Table body-->
+                </table>
+
+            </div>
+            <div class="col-sm-6">
+                <form enctype="multipart/form-data"  v-if="isInitial || isSaving">
+                        <h1>Design</h1>
+                            <p v-if="isInitial">
+                                <button type="button" class="btn btn-primary" v-on:click="selectAll()">Select All</button>
+                                <button type="button" class="btn btn-danger" v-on:click="deSelectAll()">Remove All</button>
+                                <button type="button" class="btn btn" v-on:click="save()">Save</button>
+                                <button type="button" class="btn btn" v-on:click="download()">Download</button>
+                            </p>
+                            <p v-if="isSaving">
+                                Uploading {{ fileCount }} files...
+                            </p>
+                </form>
+                <!--SUCCESS-->
+                <div v-if="isSuccess">
+                    <h1>Uploaded result</h1>
+                    <div class="alert alert-success">
+                        <strong>Success!</strong> Saved attributes selection.
+                    </div>
+                    <p>
+                        <a class="btn btn-primary btn-lg active" role="button" aria-pressed="true" href="javascript:void(0)" v-on:click="reset()">Keep designing</a>
+                    </p>
+                </div>
+                <!--FAILED-->
+                <div v-if="isFailed">
+                    <h2>Uploaded failed.</h2>
+                    <p>
+                        <a class="btn btn-danger btn-lg active" role="button" aria-pressed="true"  href="javascript:void(0)" v-on:click="reset()">Try again</a>
+                    </p>
+                    <pre>{{ uploadError }}</pre>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -41,18 +80,20 @@
         mounted() {
             this.isLoggedIn();
             this.reset();
-            this.fetchExistingUpload();
+            this.fetchExistingAttributes();
         },
         data:{
             STATUS_INITIAL: 0,
             STATUS_SAVING : 1,
             STATUS_SUCCESS : 2,
             STATUS_FAILED : 3,
+            STATUS_SORT_SELECTED: true,
             uploadedFiles: [],
             uploadError: null,
             currentStatus: null,
             uploadFieldName: 'file',
-            justUploadedFiles: []
+            justUploadedFiles: [],
+            attributes: []
         },
         computed: {
             isInitial() {
@@ -83,6 +124,25 @@
                          document.location.replace("/login");
                     }
             },
+            onSelect(item){
+                item.selected = !item.selected;
+            },
+            selectAll(){
+                _.map(this.attributes,function(item){return item.selected = true;});
+            },
+            deSelectAll(){
+                _.map(this.attributes,function(item){return item.selected = false;});
+            },
+            onSelectSort(){
+                if(this.STATUS_SORT_SELECTED){
+                    this.attributes = _.sortBy(this.attributes,function(file){ return !file.selected; })
+                    this.STATUS_SORT_SELECTED = false;
+                }
+                else{
+                    this.attributes = _.sortBy(this.attributes,function(file){ return file.selected; })
+                    this.STATUS_SORT_SELECTED = true;
+                }
+            },
             reset() {
                 this.currentStatus = this.STATUS_INITIAL;
                 this.uploadError = null;
@@ -96,6 +156,7 @@
                     axios.get("/api/attributes/" + getCookie("username")).then(function(response){
                     this.attributes = [];
                     this.attributes = response.data;
+                    this.attributes = _.sortBy(this.attributes,function(file){ return file.attributeKey; })
 
                 }.bind(this));
             },
@@ -105,6 +166,22 @@
                     this.uploadedFiles = response.data;
                     this.uploadedFiles = _.sortBy(this.uploadedFiles,function(file){ return -file.dateCreated; })
                 }.bind(this));
+            },
+            save(){
+                axios({
+                        method:'post',
+                        url:'api/attributes?access_token=' + getCookie("access_token"),
+                        auth:{username:'my-trusted-client',password:'secret'},
+                        headers: {"Content-type": "application/json"},
+                        data:this.attributes
+                    }) .then(x => {
+                        this.currentStatus = this.STATUS_SUCCESS;
+                        this.fetchExistingAttributes();
+                    })
+                    .catch(err => {
+                        this.uploadError = err.response;
+                        this.currentStatus = this.STATUS_FAILED;
+                    });
             },
             upload(formData){
                 axios({

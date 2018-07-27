@@ -6,7 +6,9 @@ import org.simpleframework.xml.core.Persister;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 @Service
 public class DataSourceService {
@@ -57,5 +59,32 @@ public class DataSourceService {
         }
 
         return attributesVMList;
+    }
+
+    public Data getFilteredPeopleSource(File file,  ArrayList<AttributesVM> attributesVMList){
+        Data data = getPeopleSource(file);
+        ArrayList<AttributesVM> newAttributesVmList = new ArrayList<AttributesVM>();
+        if(data != null){
+            newAttributesVmList.addAll(attributesVMList.stream().filter(x -> !x.getSelected()).collect(Collectors.toList()));
+            for (AttributesVM attributeVm: newAttributesVmList
+                 ) {
+                for (Entities entity: data.getEntitiesList()
+                     ) {
+                     entity.getList().removeIf(x -> x.getAttributeKey().equals(attributeVm.getAttributeKey()));
+                }
+            }
+        }
+        return data;
+    }
+    public File createXML(Data data, String path){
+        Serializer serializer = new Persister();
+        File result = new File("filtered.xml");
+        try {
+            serializer.write(data, result);
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
