@@ -44,7 +44,7 @@
                                 <button type="button" class="btn btn-primary" v-on:click="selectAll()">Select All</button>
                                 <button type="button" class="btn btn-danger" v-on:click="deSelectAll()">Remove All</button>
                                 <button type="button" class="btn btn" v-on:click="save()">Save</button>
-                                <button type="button" class="btn btn" v-on:click="download()">Download</button>
+                                <button type="button" class="btn btn" v-on:click="saveAndDownload()">Download</button>
                             </p>
                             <p v-if="isSaving">
                                 Uploading {{ fileCount }} files...
@@ -177,6 +177,42 @@
                     }) .then(x => {
                         this.currentStatus = this.STATUS_SUCCESS;
                         this.fetchExistingAttributes();
+                    })
+                    .catch(err => {
+                        this.uploadError = err.response;
+                        this.currentStatus = this.STATUS_FAILED;
+                    });
+            },
+            saveAndDownload(){
+              axios({
+                        method:'post',
+                        url:'api/attributes?access_token=' + getCookie("access_token"),
+                        auth:{username:'my-trusted-client',password:'secret'},
+                        headers: {"Content-type": "application/json"},
+                        data:this.attributes
+                    }) .then(x => {
+                        this.download();
+                    })
+                    .catch(err => {
+                        this.uploadError = err.response;
+                        this.currentStatus = this.STATUS_FAILED;
+                    });
+            },
+            download(){
+              axios({
+                        method:'get',
+                        url:'upload?access_token=' + getCookie("access_token"),
+                        auth:{username:'my-trusted-client',password:'secret'},
+                        headers: {"Content-type": "application/x-www-form-urlencoded"},
+                        responseType: 'blob'
+                    }) .then(response => {
+                        this.currentStatus = this.STATUS_SUCCESS;
+                        var url = window.URL.createObjectURL(new Blob([response.data]));
+                        var link = document.createElement('a');
+                        link.href = url;
+                        link.setAttribute('download', 'entities.xml'); //or any other extension
+                        document.body.appendChild(link);
+                        link.click();
                     })
                     .catch(err => {
                         this.uploadError = err.response;
