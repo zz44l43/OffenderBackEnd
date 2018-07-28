@@ -1,0 +1,17 @@
+package offender.backend.com.example.Offender.entities;
+
+import lombok.Data;
+import org.simpleframework.xml.Element;
+import org.simpleframework.xml.ElementList;
+import org.simpleframework.xml.Root;
+
+import java.util.ArrayList;
+
+@Data
+@Root(strict = false)
+public class IntelLocations {
+    @Element(name="id")
+    protected String id;
+    @ElementList(inline=true, required=false, name="entities")
+    protected ArrayList<IntelEntities> intelEntities;
+}
