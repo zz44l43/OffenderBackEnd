@@ -10,10 +10,10 @@ import org.simpleframework.xml.Root;
 public class IntelAttributes {
     @Attribute
     protected String type;
-    @Element
+    @Element(name="record_attribute")
     protected RecordAttribute recordAttribute;
     @Element(name="number_value_1", required=false)
-    protected String numberValue1;
+    protected Double numberValue1;
     @Element(name="number_value_2", required=false)
-    protected String numberValue2;
+    protected Double numberValue2;
 }

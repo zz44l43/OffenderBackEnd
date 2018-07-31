@@ -12,6 +12,19 @@ import java.util.ArrayList;
 public class IntelRecord {
     @Element(required=false)
     protected String title;
-    @ElementList(inline=true, required=false, name="attributes")
-    protected ArrayList<Attachments> attachments;
+    @ElementList(entry="attributes",inline = true)
+    protected ArrayList<IntelAttributes> intelAttributes;
+    @Element(required=false, name="locations")
+    protected IntelLocations locations;
+
+    public IntelAttributes getLocationAttribute(){
+        if(getLocations() == null ) return null;
+        for (IntelAttributes attribute: getIntelAttributes()
+                ) {
+            if(attribute.getRecordAttribute().getName().toLowerCase().contains("location")){
+                return attribute;
+            }
+        }
+        return null;
+    }
 }

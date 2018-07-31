@@ -87,4 +87,37 @@ public class DataSourceService {
             return null;
         }
     }
+    public Data mergeEntitiesAndRecords(Data data, ArrayList<IntelRecord> records){
+        for (Entities entity: data.getEntitiesList()
+             ) {
+            ArrayList<Locations> locations = entity.getLocations();
+            if(locations == null || locations.size() == 0){
+                continue;
+            }
+            for (Locations location: locations
+                 ) {
+                for (IntelRecord record: records
+                     ) {
+                    if(location.getId().equals(record.getLocations().getId())){
+                        if(entity.getRecordLocations() == null){
+                            entity.setRecordLocations(new ArrayList<IntelRecord>());
+                        }
+                        entity.getRecordLocations().add(record);
+                    }
+                }
+            }
+        }
+        return data;
+    }
+
+    public IntelAttributes getLocationAttribute(IntelRecord record){
+        if(record.getLocations() == null ) return null;
+        for (IntelAttributes attribute: record.getIntelAttributes()
+             ) {
+            if(attribute.getRecordAttribute().getName().toLowerCase().contains("location")){
+                return attribute;
+            }
+        }
+        return null;
+    }
 }

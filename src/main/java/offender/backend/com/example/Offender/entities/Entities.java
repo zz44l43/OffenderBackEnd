@@ -23,5 +23,9 @@ public class Entities{
     private ArrayList<Attributes> list;
     @ElementList(inline=true, required=false)
     protected ArrayList<Attachments> attachments;
+    @ElementList(inline=true, required=false, entry = "locations")
+    protected ArrayList<Locations> locations;
+
+    protected ArrayList<IntelRecord> recordLocations;
 }
 

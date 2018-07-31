@@ -12,6 +12,6 @@ import java.util.ArrayList;
 public class IntelLocations {
     @Element(name="id")
     protected String id;
-    @ElementList(inline=true, required=false, name="entities")
+    @ElementList(inline=true, required=false, entry="entities")
     protected ArrayList<IntelEntities> intelEntities;
 }

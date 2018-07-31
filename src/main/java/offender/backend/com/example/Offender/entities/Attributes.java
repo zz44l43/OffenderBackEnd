@@ -13,9 +13,12 @@ public class Attributes{
     @Attribute
     protected String type;
     @Attribute(required=false)
+    protected String label;
+    @Attribute(required=false)
     protected String stringValue;
     @Attribute(required=false)
     protected Double doubleValue;
     @Attribute(required=false)
     protected String listKey;
+
 }

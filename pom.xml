@@ -101,6 +101,11 @@
 			<version>1.18.0</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.locationtech.spatial4j</groupId>
+			<artifactId>spatial4j</artifactId>
+			<version>0.7</version>
+		</dependency>
 	</dependencies>
 
 	<build>
