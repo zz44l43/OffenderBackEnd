@@ -8,7 +8,7 @@ public class UtilsService {
         if(System.getProperty("os.name").startsWith("Windows")){
             return "C:\\Temp\\";
         }else {
-            return "/Users/es/Desktop/Users/";
+            return "/home/zhiz2/data/";
         }
     }
 
